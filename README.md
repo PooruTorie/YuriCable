@@ -11,6 +11,18 @@ Here some specs about the protocol used:
 * Name: SDQ (IDBUS) developed by Texas Instruments
 * Source: [Reversed Protocol](https://nyansatan.github.io/lightning/)
 
+## Project Setup
+
+### Create .vscode
+
+```shell
+ufbt vscode_dist
+```
+
+### Open in CLion
+
+Open the Project in CLion
+
 ## Flipper Docs
 
 [Flipper Docs](https://docs.flipper.net/)
@@ -33,6 +45,7 @@ python -m pip install --upgrade ufbt
 ```
 
 #### Update Firmware
+
 + Download Update
 
 ```shell
