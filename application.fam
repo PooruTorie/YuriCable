@@ -5,6 +5,7 @@ App(
     name="App yuricable",  # Displayed in menus
     apptype=FlipperAppType.EXTERNAL,
     entry_point="yuricable_app",
+    requires=["gui", "gpio"],
     stack_size=2 * 1024,
     fap_category="Examples",
     # Optional values
