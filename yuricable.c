@@ -9,7 +9,6 @@
 
 #define TAG "YuriCable"
 
-
 static void demo_input_callback(InputEvent* input_event, FuriMessageQueue* queue) {
     furi_assert(queue);
     Event event = {.type = EventTypeKey, .input = *input_event};
@@ -18,20 +17,23 @@ static void demo_input_callback(InputEvent* input_event, FuriMessageQueue* queue
 
 static void demo_gpio_fall_callback(FuriMessageQueue* queue) {
     UNUSED(queue);
-
-    FURI_LOG_I(TAG, "Trigger Interrupt");
+    if(furi_hal_gpio_read(&gpio_ext_pa4)) {
+        furi_hal_gpio_write(&gpio_ext_pa4, false);
+    } else {
+        furi_hal_gpio_write(&gpio_ext_pa4, true);
+    }
 }
-
 int32_t yuricable_app(void* p) {
     UNUSED(p);
 
     FURI_LOG_I(TAG, "Starting YuriCable App");
 
-    FuriMessageQueue *queue = furi_message_queue_alloc(8, sizeof(Event));
+    FuriMessageQueue* queue = furi_message_queue_alloc(8, sizeof(Event));
 
-    furi_hal_gpio_init(&gpio_ext_pc3, GpioModeInterruptFall, GpioPullUp, GpioSpeedVeryHigh);
-
-    furi_hal_gpio_add_int_callback(&gpio_ext_pc3, demo_gpio_fall_callback, queue);
+    furi_hal_gpio_init(&gpio_ext_pa7, GpioModeInterruptFall, GpioPullUp, GpioSpeedVeryHigh);
+    furi_hal_gpio_init(&gpio_ext_pa4, GpioModeOutputPushPull, GpioPullNo, GpioSpeedLow);
+    furi_hal_gpio_write(&gpio_ext_pa4, false);
+    furi_hal_gpio_add_int_callback(&gpio_ext_pa7, demo_gpio_fall_callback, queue);
 
     ViewPort* view_port = view_port_alloc();
     view_port_input_callback_set(view_port, demo_input_callback, queue);
@@ -45,23 +47,24 @@ int32_t yuricable_app(void* p) {
         if(furi_message_queue_get(queue, &event, 1000) == FuriStatusOk) {
             FURI_LOG_I(TAG, "Got event type: %d", event.type);
             switch(event.type) {
-                case EventTypeKey:
-                    // Short press of back button exits the program.
-                    if(event.input.type == InputTypeShort && event.input.key == InputKeyBack) {
-                        FURI_LOG_I(TAG, "Short-Back pressed. Exiting program.");
-                        processing = false;
-                    }
-                    break;
-                default:
-                    break;
+            case EventTypeKey:
+                // Short press of back button exits the program.
+                if(event.input.type == InputTypeShort && event.input.key == InputKeyBack) {
+                    FURI_LOG_I(TAG, "Short-Back pressed. Exiting program.");
+                    processing = false;
+                }
+                break;
+            default:
+                break;
             }
         }
     } while(processing);
 
-    furi_hal_gpio_remove_int_callback(&gpio_ext_pc3);
-
-    furi_hal_gpio_init(&gpio_ext_pc3, GpioModeOutputOpenDrain, GpioPullNo, GpioSpeedLow);
-    furi_hal_gpio_write(&gpio_ext_pc3, true);
+    furi_hal_gpio_remove_int_callback(&gpio_ext_pa7);
+    furi_hal_gpio_init(&gpio_ext_pa4, GpioModeOutputOpenDrain, GpioPullNo, GpioSpeedLow);
+    furi_hal_gpio_write(&gpio_ext_pa4, true);
+    furi_hal_gpio_init(&gpio_ext_pa7, GpioModeOutputOpenDrain, GpioPullNo, GpioSpeedLow);
+    furi_hal_gpio_write(&gpio_ext_pa7, true);
 
     view_port_enabled_set(view_port, false);
     gui_remove_view_port(gui, view_port);
